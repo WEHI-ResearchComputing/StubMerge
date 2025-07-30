@@ -1,14 +1,21 @@
 import ast
+import re
 
 def is_more_informative_type(type1: ast.expr | None, type2: ast.expr | None):
     # Returns True if type1 is more informative than type2
     # For simplicity, treat 'Any' or None as less informative
-    if type1 is None or (isinstance(type1, ast.Name) and type1.id == 'Any'):
-        return False
-    if type2 is None or (isinstance(type2, ast.Name) and type2.id == 'Any'):
-        return True
-    # You can add more sophisticated checks here
-    return False
+    placeholder = re.compile(r'^(Any|Incomplete)$')
+    match type1, type2:
+        case None, _:
+            return False
+        case _, None:
+            return True
+        case _:
+            # If type1 is a placeholder, it is not more informative
+            for child in ast.walk(type1):
+                if isinstance(child, ast.Name) and placeholder.match(child.id):
+                    return False
+            return True
 
 class AnnotationOverrideTransformer(ast.NodeTransformer):
     def __init__(self, annotation_ast: ast.AST):
@@ -37,7 +44,7 @@ class AnnotationOverrideTransformer(ast.NodeTransformer):
     #         pass
     #     return self.generic_visit(node)
 
-def merge_annotations(source_ast: ast.AST, annotation_ast: ast.AST) -> ast.AST:
+def merge_annotations(source_ast: ast.Module, annotation_ast: ast.Module) -> ast.Module:
     """
     Merges annotations from annotation_ast into source_ast.
     Returns a new AST with the merged annotations.
