@@ -55,12 +55,14 @@ def foo(x: int) -> int:
 ```
 
 ## Installation
-Add `stubmerge` to your project (see requirements or install manually).
+```bash
+uv add `git+https://github.com/WEHI-ResearchComputing/StubMerge
+```
 
 ## Testing
 Run tests with pytest:
-```shell
-pytest
+```bash
+uv run pytest
 ```
 
 ## License
